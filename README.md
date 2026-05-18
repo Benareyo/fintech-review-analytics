@@ -50,6 +50,21 @@ The pipeline successfully executed against the scraped review assets with the fo
 | **Account Access Issues** | 38 | 3.8% |
 
 | **Feature Requests** | 22 | 2.2% |
+## Task 3: Database Storage & Ingestion Pipeline
+
+### Database Architecture
+The project utilizes a relational Star Schema design hosted on a local PostgreSQL 18 server instance. 
+- **Banks (Dimension Table):** Stores primary metadata including auto-incremented primary keys (`bank_id`), financial entity naming metrics, and product application labels.
+- **Reviews (Fact Table):** Stores sentiment analysis metrics, timestamps, structural review observations, and maps back to the entity table via a foreign key relationship.
+
+### Setup & Migrations Execution
+To recreate the schema structural maps and populate tables with automated fallback mechanisms:
+```bash
+python src/database.py
+
 
 | **Feature Requests** | 22 | 2.2% |
+
+| **Feature Requests** | 22 | 2.2% |
+
 
