@@ -48,4 +48,8 @@ The pipeline successfully executed against the scraped review assets with the fo
 | **App Stability & UI** | 50 | 5.0% |
 | **Transaction Performance** | 43 | 4.3% |
 | **Account Access Issues** | 38 | 3.8% |
+
 | **Feature Requests** | 22 | 2.2% |
+
+| **Feature Requests** | 22 | 2.2% |
+
