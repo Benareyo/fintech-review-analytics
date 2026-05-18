@@ -48,6 +48,7 @@ The pipeline successfully executed against the scraped review assets with the fo
 | **App Stability & UI** | 50 | 5.0% |
 | **Transaction Performance** | 43 | 4.3% |
 | **Account Access Issues** | 38 | 3.8% |
+
 | **Feature Requests** | 22 | 2.2% |
 ## Task 3: Database Storage & Ingestion Pipeline
 
@@ -60,3 +61,10 @@ The project utilizes a relational Star Schema design hosted on a local PostgreSQ
 To recreate the schema structural maps and populate tables with automated fallback mechanisms:
 ```bash
 python src/database.py
+
+
+| **Feature Requests** | 22 | 2.2% |
+
+| **Feature Requests** | 22 | 2.2% |
+
+
