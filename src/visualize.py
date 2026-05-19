@@ -2,76 +2,58 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sqlalchemy import create_engine
 
-# Database Connection Setup
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/bank_reviews"
-engine = create_engine(DATABASE_URL)
+sns.set_theme(style="whitegrid")
 
-# Ensure output directory exists
-os.makedirs("notebooks/plots", exist_ok=True)
-
-def load_data():
-    query = """
-        SELECT r.*, b.bank_name 
-        FROM reviews r
-        JOIN banks b ON r.bank_id = b.bank_id
-    """
-    with engine.connect() as conn:
-        return pd.read_sql(query, conn)
-
-def plot_sentiment_distribution(df):
-    plt.figure(figsize=(10, 6))
-    sns.set_theme(style="whitegrid")
+def generate_and_save_plots():
+    csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
+    if not csv_files and os.path.exists('data'):
+        csv_files = [os.path.join('data', f) for f in os.listdir('data') if f.endswith('.csv')]
+        
+    if not csv_files:
+        print("❌ Error: Missing source CSV files for rendering.")
+        return
+        
+    df = pd.read_csv(csv_files[0])
+    os.makedirs("notebooks/plots", exist_ok=True)
     
-    # Calculate counts for stacked bar representation
-    sentiment_counts = df.groupby(['bank_name', 'sentiment_label']).size().unstack(fill_value=0)
-    sentiment_pct = sentiment_counts.div(sentiment_counts.sum(axis=1), axis=0) * 100
-    
-    sentiment_pct.plot(kind='bar', stacked=True, figsize=(10, 6), color=['#e74c3c', '#95a5a6', '#2ecc71'])
-    plt.title("Sentiment Label Distribution Across Ethiopian Retail Banking Apps", fontsize=14, fontweight='bold', pad=15)
-    plt.xlabel("Banking Institution", fontsize=12)
-    plt.ylabel("Percentage Coverage (%)", fontsize=12)
-    plt.xticks(rotation=0)
-    plt.legend(title="Sentiment Classification", bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    plt.savefig("notebooks/plots/sentiment_distribution.png", dpi=300)
-    plt.close()
-    print("📈 Saved: notebooks/plots/sentiment_distribution.png")
+    df.columns = [col.lower().strip() for col in df.columns]
+    bank_col = 'bank_name' if 'bank_name' in df.columns else ('bank' if 'bank' in df.columns else None)
+    sentiment_col = 'sentiment_label' if 'sentiment_label' in df.columns else ('sentiment' if 'sentiment' in df.columns else None)
+    rating_col = 'rating'
+    theme_col = 'identified_theme' if 'identified_theme' in df.columns else ('theme' if 'theme' in df.columns else None)
 
-def plot_rating_distribution(df):
-    plt.figure(figsize=(10, 6))
-    sns.boxplot(x='bank_name', y='rating', data=df, palette='Set2', hue='bank_name', legend=False)
-    plt.title("Review Rating Distribution Across Target Applications", fontsize=14, fontweight='bold', pad=15)
-    plt.xlabel("Banking Institution", fontsize=12)
-    plt.ylabel("App Store Star Rating (1-5)", fontsize=12)
-    plt.tight_layout()
-    plt.savefig("notebooks/plots/rating_distribution.png", dpi=300)
-    plt.close()
-    print("📈 Saved: notebooks/plots/rating_distribution.png")
+    print("🚀 Running visualization rendering matrices...")
 
-def plot_theme_frequencies(df):
-    plt.figure(figsize=(12, 6))
-    theme_counts = df.groupby(['bank_name', 'identified_theme']).size().unstack(fill_value=0)
-    
-    theme_counts.plot(kind='bar', figsize=(12, 6), cmap='viridis')
-    plt.title("Categorized Operational Pillars & Feature Concerns by Bank", fontsize=14, fontweight='bold', pad=15)
-    plt.xlabel("Banking Institution", fontsize=12)
-    plt.ylabel("Total Review Mentions (Volume)", fontsize=12)
-    plt.xticks(rotation=0)
-    plt.legend(title="Identified Theme Cluster", bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    plt.savefig("notebooks/plots/theme_frequencies.png", dpi=300)
-    plt.close()
-    print("📈 Saved: notebooks/plots/theme_frequencies.png")
+    if bank_col and sentiment_col:
+        plt.figure(figsize=(10, 6))
+        matrix = pd.crosstab(df[bank_col], df[sentiment_col], normalize='index') * 100
+        matrix.plot(kind='bar', stacked=True, color=['#e11d48', '#16a34a'], ax=plt.gca())
+        plt.title('Fintech App Sentiment Distribution Matrix', fontsize=12, fontweight='bold')
+        plt.ylabel('Percentage Proportion (%)')
+        plt.tight_layout()
+        plt.savefig('notebooks/plots/sentiment_distribution.png', dpi=300)
+        plt.close()
+        print("  ✅ Metric Chart 1 Saved: notebooks/plots/sentiment_distribution.png")
+
+    if bank_col and rating_col in df.columns:
+        plt.figure(figsize=(9, 5))
+        sns.boxplot(x=bank_col, y=rating_col, data=df, palette='Set2')
+        plt.title('App Store Star Rating Polarization Spread', fontsize=12, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig('notebooks/plots/rating_distribution.png', dpi=300)
+        plt.close()
+        print("  ✅ Metric Chart 2 Saved: notebooks/plots/rating_distribution.png")
+
+    if theme_col and bank_col:
+        plt.figure(figsize=(11, 6))
+        sns.countplot(x=theme_col, hue=bank_col, data=df, palette='muted')
+        plt.title('Volumetric Frequency of Identified Technical Themes', fontsize=12, fontweight='bold')
+        plt.xticks(rotation=15)
+        plt.tight_layout()
+        plt.savefig('notebooks/plots/theme_frequencies.png', dpi=300)
+        plt.close()
+        print("  ✅ Metric Chart 3 Saved: notebooks/plots/theme_frequencies.png")
 
 if __name__ == "__main__":
-    print("🎨 Initializing pipeline visualization generation suite...")
-    data = load_data()
-    if not data.empty:
-        plot_sentiment_distribution(data)
-        plot_rating_distribution(data)
-        plot_theme_frequencies(data)
-        print("🎉 All 3 analytical visualizations exported successfully!")
-    else:
-        print("❌ Error: No database entries found to visualize.")
+    generate_and_save_plots()
